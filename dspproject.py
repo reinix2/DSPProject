@@ -1,41 +1,41 @@
 import streamlit as st
 import numpy as np
+import sounddevice as sd
 import matplotlib.pyplot as plt
-from doa_utils import record_audio, calculate_tdoa, calculate_angle
+from scipy.signal import spectrogram
 
-st.set_page_config(page_title="Real-Time DoA Estimation", layout="centered")
+st.title("🎧 Real-Time Audio Visualizer (Single Microphone)")
 
-st.title("🎧 Real-Time Direction-of-Arrival (DoA) Estimation")
-st.markdown("""
-Estimate the direction of a sound source using two microphones.
+duration = st.slider("Recording duration (seconds)", 0.5, 3.0, 1.0, 0.1)
+fs = 44100
 
-📌 **Instructions:**
-- Ensure your input device provides **stereo** audio.
-- Place two microphones at a fixed known distance (e.g., 0.2 meters).
-- Click **Record**, make a **clap or sound**, and see the estimated direction.
-""")
+def record_audio(duration, fs):
+    st.info("Recording audio...")
+    audio = sd.rec(int(duration * fs), samplerate=fs, channels=1)
+    sd.wait()
+    st.success("Recording complete!")
+    return audio.flatten()
 
-mic_distance = st.slider("Microphone Distance (meters)", 0.01, 1.0, 0.2, 0.01)
-duration = st.slider("Recording Duration (seconds)", 0.5, 3.0, 1.0, 0.1)
-
-if st.button("🎙️ Record & Estimate Direction"):
-    try:
-        signal, fs = record_audio(duration=duration, channels=2)
-        tdoa = calculate_tdoa(signal, fs)
-        angle = calculate_angle(tdoa, mic_distance)
-
-        if angle is None:
-            st.error("Invalid TDOA. Try again with cleaner input.")
-        else:
-            st.success(f"Estimated Angle: **{angle:.2f}°**")
-
-            # Polar Plot
-            fig, ax = plt.subplots(subplot_kw={'projection': 'polar'})
-            theta = np.deg2rad(angle)
-            ax.plot([theta, theta], [0, 1], color='r', linewidth=3)
-            ax.set_ylim(0, 1)
-            ax.set_title("Direction of Arrival", va='bottom')
-            st.pyplot(fig)
-
-    except Exception as e:
-        st.error(f"Error during recording or processing: {str(e)}")
+if st.button("Record & Visualize"):
+    audio = record_audio(duration, fs)
+    
+    # Volume (RMS)
+    rms = np.sqrt(np.mean(audio**2))
+    st.write(f"RMS Volume: {rms:.4f}")
+    
+    # Plot waveform
+    fig_wf, ax_wf = plt.subplots()
+    ax_wf.plot(np.linspace(0, duration, len(audio)), audio)
+    ax_wf.set_title("Waveform")
+    ax_wf.set_xlabel("Time [s]")
+    ax_wf.set_ylabel("Amplitude")
+    st.pyplot(fig_wf)
+    
+    # Spectrogram
+    f, t, Sxx = spectrogram(audio, fs)
+    fig_sp, ax_sp = plt.subplots()
+    ax_sp.pcolormesh(t, f, 10 * np.log10(Sxx), shading='gouraud')
+    ax_sp.set_ylabel('Frequency [Hz]')
+    ax_sp.set_xlabel('Time [s]')
+    ax_sp.set_title("Spectrogram")
+    st.pyplot(fig_sp)
