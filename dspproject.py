@@ -4,7 +4,7 @@ import sounddevice as sd
 import matplotlib.pyplot as plt
 from scipy.signal import spectrogram
 
-st.title("🎧 Real-Time Audio Visualizer (Single Microphone)")
+st.title("Real-Time Audio Visualizer (Single Microphone)")
 
 duration = st.slider("Recording duration (seconds)", 0.5, 3.0, 1.0, 0.1)
 fs = 44100
