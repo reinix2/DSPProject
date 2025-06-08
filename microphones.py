@@ -1,2 +1,2 @@
-pip install streamlit streamlit-webrtc
-streamlit microphones.py
+pip install streamlit streamlit-webrtc numpy matplotlib scipy
+streamlit run dspproject.py
