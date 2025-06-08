@@ -1,2 +1,2 @@
-pip install streamlit streamlit-webrtc numpy matplotlib scipy
+pip install streamlit sounddevice numpy matplotlib scipy
 streamlit run dspproject.py
