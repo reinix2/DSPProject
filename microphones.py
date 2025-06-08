@@ -1,2 +1,2 @@
-pip install streamlit sounddevice numpy matplotlib scipy
+pip install streamlit streamlit-webrtc
 streamlit microphones.py
