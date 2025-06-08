@@ -4,6 +4,8 @@ import matplotlib.pyplot as plt
 from scipy.signal import correlate
 from math import asin, degrees
 from streamlit_webrtc import webrtc_streamer, AudioProcessorBase
+import sounddevice as sd
+st.write(sd.query_devices())
 
 # Constants
 MIC_DISTANCE = 0.2  # meters between microphones
