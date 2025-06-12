@@ -13,9 +13,11 @@ st.title("🔊 Sound Direction Detection Using Two Microphones")
 st.markdown("""
 This app uses **Time Difference of Arrival (TDOA)** between two microphones to estimate the **angle** and **direction** of any sound source.
 
-✅ Use a stereo microphone  
-✅ Make any sound (speech, clap, knock, etc.)  
-✅ See live direction and angle estimate  
+1. Set up two microphones spaced apart. 
+2. Record a clap or sound from various angles. 
+3. Use cross-correlation to calculate time difference of arrival (TDOA). 
+4. Calculate the angle of arrival based on microphone distance and TDOA. 
+5. Display results in degrees or on a polar plot. 
 """)
 
 # Adjustable parameters
