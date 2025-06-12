@@ -13,12 +13,20 @@ SAMPLERATE = 44100  # Hz
 st.title("🔊 Direction-of-Arrival Estimation")
 st.write("Estimate the angle of arrival of a sound using two microphones.")
 
-# Get input devices
-devices = sd.query_devices()
-input_devices = [d for d in devices if d['max_input_channels'] >= 2]
-device_names = [f"{i}: {d['name']}" for i, d in enumerate(devices) if d['max_input_channels'] >= 2]
+# Get stereo input devices (at least 2 channels)
+all_devices = sd.query_devices()
+input_devices = [
+    {"name": d["name"], "index": i}
+    for i, d in enumerate(all_devices)
+    if d["max_input_channels"] >= 2
+]
 
-selected_device_index = st.selectbox("🎚️ Select Stereo Microphone Device", range(len(device_names)), format_func=lambda i: device_names[i])
+# Dropdown list
+device_names = [f'{d["index"]}: {d["name"]}' for d in input_devices]
+selected_device_label = st.selectbox("🎚️ Select Stereo Microphone Device", device_names)
+
+# Extract actual device index from selection
+selected_device_index = int(selected_device_label.split(":")[0])
 
 if st.button("🎙️ Record Sound"):
     st.info("Recording from selected stereo microphone for 1 second...")
@@ -28,7 +36,7 @@ if st.button("🎙️ Record Sound"):
         recording = sd.rec(int(DURATION * SAMPLERATE),
                            samplerate=SAMPLERATE,
                            channels=2,
-                           device=input_devices[selected_device_index]['index'])
+                           device=selected_device_index)
         sd.wait()
 
         # Separate channels
