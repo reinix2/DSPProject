@@ -6,8 +6,6 @@ import matplotlib.pyplot as plt
 
 # Constants
 SOUND_SPEED = 343  # m/s
-MIC_DISTANCE = 0.2  # meters
-DURATION = 1  # seconds
 SAMPLERATE = 44100  # Hz
 
 st.title("🔊 Direction-of-Arrival Estimation Using Microphone Array")
@@ -15,13 +13,17 @@ st.markdown("""
 **Objective**: Estimate the direction from which a sound is coming using time delays between microphones.
 
 **Instructions**:
-- Set up two microphones spaced apart.
+- Set up two microphones spaced at least 1 meter apart.
 - Record a clap or sound from various angles.
 - Use cross-correlation to calculate TDOA.
-- Calculate and display the angle of arrival and direction.
+- Display estimated angle and sound direction.
 """)
 
-# Get all input devices (including mono)
+# Adjustable sliders
+DURATION = st.slider("🎧 Recording Duration (seconds)", min_value=0.5, max_value=5.0, value=1.0, step=0.1)
+MIC_DISTANCE = st.slider("📏 Distance Between Microphones (meters)", min_value=1.0, max_value=5.0, value=1.0, step=0.1)
+
+# Device selection
 all_devices = sd.query_devices()
 input_devices = [
     {"name": d["name"], "index": i, "channels": d["max_input_channels"]}
@@ -33,8 +35,9 @@ device_labels = [f'{d["index"]}: {d["name"]} ({d["channels"]} channels)' for d i
 selected_label = st.selectbox("🎚️ Select Input Device", device_labels)
 selected_device = input_devices[device_labels.index(selected_label)]
 
+# Record button
 if st.button("🎙️ Record Sound"):
-    st.info(f"Recording from: {selected_device['name']}...")
+    st.info(f"Recording from {selected_device['name']} for {DURATION} seconds...")
 
     try:
         channels = 2 if selected_device["channels"] >= 2 else 1
@@ -52,12 +55,7 @@ if st.button("🎙️ Record Sound"):
             tdoa = lag / SAMPLERATE
 
             # Estimate direction
-            if lag > 0:
-                direction = "RIGHT"
-            elif lag < 0:
-                direction = "LEFT"
-            else:
-                direction = "CENTER"
+            direction = "RIGHT" if lag > 0 else "LEFT" if lag < 0 else "CENTER"
 
             # Calculate angle
             try:
@@ -67,26 +65,26 @@ if st.button("🎙️ Record Sound"):
             except ValueError:
                 angle = None
 
-            # Output
+            # Results
             st.write(f"🕒 TDOA: `{tdoa:.6f}` seconds")
-            st.write(f"📍 Sound Source Direction: **{direction}**")
+            st.write(f"📍 Direction: **{direction}**")
             if angle is not None:
-                st.success(f"Estimated Angle of Arrival: `{angle:.2f}°`")
+                st.success(f"Estimated Angle: `{angle:.2f}°`")
             else:
-                st.error("Could not calculate angle due to invalid TDOA.")
+                st.error("Angle could not be calculated from TDOA.")
 
-            # Polar plot
+            # Plot
             fig, ax = plt.subplots(subplot_kw={'projection': 'polar'})
             ax.set_theta_zero_location('N')
             ax.set_theta_direction(-1)
             if angle is not None:
                 angle_rad = np.radians(angle)
                 ax.plot([angle_rad, angle_rad], [0, 1], linewidth=3)
-            ax.set_title("Estimated Direction")
+            ax.set_title("Estimated Sound Direction")
             st.pyplot(fig)
 
         else:
-            st.warning("Only one channel detected. Direction-of-arrival estimation requires stereo input.")
+            st.warning("Only one input channel detected. Stereo input is required for direction estimation.")
             st.line_chart(recording)
 
     except Exception as e:
